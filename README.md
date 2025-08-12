@@ -68,7 +68,7 @@ quarto render twitter_engagement_analysis.qmd --to gfm
 
 ## Methodology Highlights
 
-###  **Methodologically Sound Approach**
+### **Methodologically Sound Approach**
 - **Independent Ground Truth**: GPT-5 agreement evaluation for model selection
 - **Outlier-Resistant Analysis**: Winsorized means (95th percentile cap) to handle skewed engagement data
 - **Robustness Testing**: Multiple normalization methods to validate conclusions
