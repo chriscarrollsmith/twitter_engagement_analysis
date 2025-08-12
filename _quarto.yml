@@ -1,0 +1,18 @@
+project:
+  type: default
+
+format:
+  gfm:
+    code-fold: false
+    echo: true
+    warning: false
+    fig-width: 10
+    fig-height: 6
+    dpi: 300
+    embed-resources: false
+    
+execute:
+  freeze: auto
+  echo: true
+  warning: false
+  error: false
