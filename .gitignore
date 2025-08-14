@@ -22,3 +22,4 @@ classification_metadata.json
 *.csv
 selected_model.txt
 replied_tweets.json
+*.parquet

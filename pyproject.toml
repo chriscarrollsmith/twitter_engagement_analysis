@@ -16,4 +16,9 @@ dependencies = [
     "quarto-cli>=1.7.33",
     "scipy>=1.16.1",
     "seaborn>=0.13.2",
+    "statsmodels>=0.14.0",
+    "linearmodels>=5.0",
+    "pyarrow>=14.0.0",
+    "ruptures>=1.1.9",
+    "jupyter-cache>=1.0.0",
 ]

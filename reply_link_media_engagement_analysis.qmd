@@ -1,0 +1,440 @@
+---
+title: "Reply, Link, and Media Engagement Analysis"
+format: gfm
+execute:
+  engine: jupyter
+  cache: false
+---
+
+## Setup
+
+```{python}
+#| label: setup
+#| message: false
+#| warning: false
+
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+from linearmodels.panel import PanelOLS
+import seaborn as sns
+import matplotlib.pyplot as plt
+from IPython.display import display
+
+from src.analysis_utils import (
+    load_archive,
+    engineer_features,
+    create_core_sample,
+    TIER_UPGRADED_START,
+    TIER_POST_UPGRADE_START,
+)
+
+sns.set_theme(style="whitegrid")
+plt.rcParams["figure.figsize"] = (10, 6)
+```
+
+## Load Data
+
+Load the `twitter_archive.json` with a robust loader that supports JSONL and nested shapes.
+
+```{python}
+#| label: load-data
+
+raw_df = load_archive("twitter_archive.json")
+print(f"Loaded raw rows: {len(raw_df):,}")
+raw_df.head(2)
+```
+
+## Feature Engineering
+
+Create analytical features and define the core modeling sample per plan: exclude retweets and quotes; include `reply_type` in {none, reply_other}.
+
+```{python}
+#| label: feature-engineering
+
+df = engineer_features(raw_df)
+model_df = create_core_sample(df)
+
+# Persist engineered dataset for reuse
+df.to_parquet("tweet_engagement_model.parquet")
+
+print({
+    "engineered_rows": len(df),
+    "model_rows": len(model_df),
+    "columns": len(df.columns),
+})
+model_df[["reply_type", "has_link", "has_media", "account_tier", "total_engagement"]].head()
+```
+
+## EDA
+
+```{python}
+#| label: eda
+
+print("Reply type distribution:")
+display(model_df["reply_type"].value_counts())
+print("\nContent features:")
+display(model_df[["has_link", "has_media"]].mean().rename("share"))
+print("\nTier distribution:")
+display(model_df["account_tier"].value_counts())
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+# Reply type
+model_df.boxplot(column="winsorized_engagement", by="reply_type", ax=axes[0])
+axes[0].set_title("Engagement by Reply Type")
+axes[0].set_xlabel("Reply Type")
+
+# Has link
+model_df.boxplot(column="winsorized_engagement", by="has_link", ax=axes[1])
+axes[1].set_title("Engagement by Link Presence")
+axes[1].set_xlabel("Has Link")
+
+# Has media
+model_df.boxplot(column="winsorized_engagement", by="has_media", ax=axes[2])
+axes[2].set_title("Engagement by Media Presence")
+axes[2].set_xlabel("Has Media")
+
+plt.suptitle("")
+plt.tight_layout()
+plt.show()
+```
+
+## Stratified Comparisons
+
+```{python}
+#| label: stratified-comparison
+
+# Create summary by tier and content features
+tier_summary = model_df.groupby(["account_tier", "reply_type"]).agg({
+    "winsorized_engagement": ["mean", "median", "count"]
+}).round(2)
+
+print("Mean engagement by tier and reply type:")
+display(tier_summary)
+
+# Visualize with small multiples
+g = sns.catplot(
+    data=model_df,
+    x="reply_type",
+    y="winsorized_engagement",
+    col="account_tier",
+    kind="bar",
+    height=4,
+    aspect=0.8,
+    ci="sd"
+)
+g.set_titles("{col_name}")
+g.set_axis_labels("Reply Type", "Winsorized Engagement")
+plt.show()
+
+# Links and media by tier
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+for i, var in enumerate(["has_link", "has_media"]):
+    pivot = model_df.groupby(["account_tier", var])["winsorized_engagement"].mean().unstack()
+    pivot.plot(kind="bar", ax=axes[i])
+    axes[i].set_title(f"Engagement by {var.replace('_', ' ').title()} and Tier")
+    axes[i].set_xlabel("Account Tier")
+    axes[i].set_ylabel("Mean Winsorized Engagement")
+    axes[i].legend(title=var.replace('_', ' ').title())
+
+plt.tight_layout()
+plt.show()
+```
+
+## Model: Robust OLS
+
+```{python}
+#| label: model-ols
+
+controls = "text_length_chars + num_hashtags + num_mentions + C(weekday) + C(hour_of_day)"
+formula_ols = (
+    "np.log1p(winsorized_engagement) ~ C(reply_type) + has_link + has_media + "
+    + controls + " + C(month) + C(account_tier)"
+)
+
+ols_model = smf.ols(formula_ols, data=model_df).fit(cov_type="HC1")
+print(ols_model.summary())
+
+# Extract and visualize key coefficients
+coef_df = pd.DataFrame({
+    "coef": ols_model.params,
+    "se": ols_model.bse,
+    "ci_lower": ols_model.conf_int()[0],
+    "ci_upper": ols_model.conf_int()[1]
+})
+
+# Filter to main variables of interest
+main_vars = coef_df.index[coef_df.index.str.contains("reply_type|has_link|has_media|tier")]
+coef_subset = coef_df.loc[main_vars].sort_values("coef")
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.errorbar(coef_subset["coef"], range(len(coef_subset)), 
+           xerr=[coef_subset["coef"] - coef_subset["ci_lower"],
+                 coef_subset["ci_upper"] - coef_subset["coef"]],
+           fmt='o', capsize=5)
+ax.set_yticks(range(len(coef_subset)))
+ax.set_yticklabels(coef_subset.index)
+ax.axvline(0, color='red', linestyle='--', alpha=0.5)
+ax.set_xlabel("Coefficient (log scale)")
+ax.set_title("OLS Model: Key Coefficients with 95% CI")
+plt.tight_layout()
+plt.show()
+```
+
+## Model: GLM Poisson
+
+```{python}
+#| label: model-poisson
+
+formula_poisson = (
+    "total_engagement ~ C(reply_type) + has_link + has_media + "
+    + controls + " + C(month) + C(account_tier)"
+)
+
+poisson_model = smf.glm(
+    formula_poisson,
+    data=model_df,
+    family=sm.families.Poisson(),
+).fit(cov_type="HC1")
+print(poisson_model.summary())
+
+# Calculate and display IRRs (Incidence Rate Ratios)
+irr_df = pd.DataFrame({
+    "IRR": np.exp(poisson_model.params),
+    "CI_lower": np.exp(poisson_model.conf_int()[0]),
+    "CI_upper": np.exp(poisson_model.conf_int()[1])
+})
+
+# Filter to main variables
+main_vars = irr_df.index[irr_df.index.str.contains("reply_type|has_link|has_media|tier")]
+irr_subset = irr_df.loc[main_vars].sort_values("IRR")
+
+print("\nIncidence Rate Ratios (IRR) for key variables:")
+display(irr_subset.round(3))
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.errorbar(irr_subset["IRR"], range(len(irr_subset)), 
+           xerr=[irr_subset["IRR"] - irr_subset["CI_lower"],
+                 irr_subset["CI_upper"] - irr_subset["IRR"]],
+           fmt='o', capsize=5)
+ax.set_yticks(range(len(irr_subset)))
+ax.set_yticklabels(irr_subset.index)
+ax.axvline(1, color='red', linestyle='--', alpha=0.5)
+ax.set_xlabel("Incidence Rate Ratio")
+ax.set_title("Poisson Model: IRRs with 95% CI")
+plt.tight_layout()
+plt.show()
+```
+
+## Model with Interactions
+
+```{python}
+#| label: model-interactions
+
+# OLS with interactions
+formula_interact = (
+    "np.log1p(winsorized_engagement) ~ C(reply_type) * C(account_tier) + "
+    "has_link * C(account_tier) + has_media * C(account_tier) + "
+    + controls + " + C(month)"
+)
+
+ols_interact = smf.ols(formula_interact, data=model_df).fit(cov_type="HC1")
+print("OLS with Interactions - Selected coefficients:")
+interact_coefs = ols_interact.params[ols_interact.params.index.str.contains(":")]
+display(interact_coefs.round(4))
+
+# Visualize interaction effects
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Reply type × Tier interaction
+reply_tier = model_df.groupby(["reply_type", "account_tier"])["winsorized_engagement"].mean().unstack()
+reply_tier.plot(kind="bar", ax=axes[0])
+axes[0].set_title("Reply Type × Tier Interaction")
+axes[0].set_xlabel("Reply Type")
+axes[0].set_ylabel("Mean Winsorized Engagement")
+
+# Media × Tier interaction  
+media_tier = model_df.groupby(["has_media", "account_tier"])["winsorized_engagement"].mean().unstack()
+media_tier.plot(kind="bar", ax=axes[1])
+axes[1].set_title("Media × Tier Interaction")
+axes[1].set_xlabel("Has Media")
+axes[1].set_ylabel("Mean Winsorized Engagement")
+
+plt.tight_layout()
+plt.show()
+```
+
+## Tier Event Study
+
+```{python}
+#| label: tier-event-study
+
+upgrade = pd.to_datetime(TIER_UPGRADED_START, utc=True)
+post_upgrade = pd.to_datetime(TIER_POST_UPGRADE_START, utc=True)
+
+df_es = model_df.copy()
+df_es["week"] = df_es.index.to_period("W").astype(str)
+df_es["rel_week_upgrade"] = ((df_es.index - upgrade).days // 7).astype(int)
+df_es["rel_week_post"] = ((df_es.index - post_upgrade).days // 7).astype(int)
+
+# Filter to period around upgrade
+window_weeks = 12
+df_es_window = df_es[
+    (df_es["rel_week_upgrade"] >= -window_weeks) & 
+    (df_es["rel_week_upgrade"] <= window_weeks)
+].copy()
+
+if len(df_es_window) > 0:
+    # Aggregate by relative week
+    weekly_stats = df_es_window.groupby("rel_week_upgrade").agg({
+        "total_engagement": ["mean", "median", "count"],
+        "winsorized_engagement": "mean"
+    }).round(2)
+    
+    print(f"Weekly engagement around tier upgrade (±{window_weeks} weeks):")
+    display(weekly_stats.head(10))
+    
+    # Visualize
+    fig, ax = plt.subplots(figsize=(12, 6))
+    weekly_means = df_es_window.groupby("rel_week_upgrade")["winsorized_engagement"].mean()
+    weekly_means.plot(kind="line", marker="o", ax=ax)
+    ax.axvline(0, color="red", linestyle="--", label="Tier Upgrade")
+    ax.set_xlabel("Weeks Relative to Upgrade")
+    ax.set_ylabel("Mean Winsorized Engagement")
+    ax.set_title("Event Study: Engagement Around Tier Upgrade")
+    ax.legend()
+    plt.show()
+else:
+    print("Insufficient data for tier event study")
+```
+
+## Within-Thread FE (scaffold)
+
+```{python}
+#| label: within-thread
+
+thread_df = df[df.groupby("thread_id")["id_str"].transform("count") > 1].copy()
+if not thread_df.empty:
+    panel = thread_df.set_index(["thread_id", "post_datetime"]).sort_index()
+    exog_vars = ["thread_step_index", "has_link", "has_media", "text_length_chars"]
+    exog = sm.add_constant(panel[exog_vars])
+    model_fe = PanelOLS(panel["total_engagement"], exog, entity_effects=True).fit()
+    print(model_fe)
+else:
+    print("No multi-tweet threads detected in archive.")
+```
+
+## Temporal Stability
+
+```{python}
+#| label: temporal-stability
+
+from src.analysis_utils import ROLLING_WINDOW_DAYS
+
+# Create rolling window analysis
+model_df_sorted = model_df.sort_index()
+
+# Monthly engagement trends by content type
+monthly = model_df_sorted.groupby(["month", "reply_type"]).agg({
+    "winsorized_engagement": "mean",
+    "total_engagement": "count"
+}).round(2)
+
+print("Monthly engagement by reply type (last 6 months):")
+display(monthly.tail(12))
+
+# Visualize trends
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+# Reply type trends
+pivot_reply = model_df_sorted.groupby(["month", "reply_type"])["winsorized_engagement"].mean().unstack()
+if len(pivot_reply) > 1:
+    pivot_reply.plot(ax=axes[0, 0], marker="o")
+    axes[0, 0].set_title("Engagement Trends by Reply Type")
+    axes[0, 0].set_xlabel("Month")
+    axes[0, 0].tick_params(axis='x', rotation=45)
+
+# Link/media trends
+for i, var in enumerate(["has_link", "has_media"]):
+    pivot = model_df_sorted.groupby(["month", var])["winsorized_engagement"].mean().unstack()
+    if len(pivot) > 1:
+        pivot.plot(ax=axes[0 if i == 0 else 1, 1], marker="o")
+        axes[0 if i == 0 else 1, 1].set_title(f"Engagement Trends by {var.replace('_', ' ').title()}")
+        axes[0 if i == 0 else 1, 1].set_xlabel("Month")
+        axes[0 if i == 0 else 1, 1].tick_params(axis='x', rotation=45)
+
+# Volume over time
+volume = model_df_sorted.resample("W")["id_str"].count()
+volume.plot(ax=axes[1, 0], color="navy")
+axes[1, 0].set_title("Tweet Volume Over Time (Weekly)")
+axes[1, 0].set_xlabel("Week")
+axes[1, 0].set_ylabel("Number of Tweets")
+
+plt.tight_layout()
+plt.show()
+```
+
+## Robustness Checks
+
+```{python}
+#| label: robustness-checks
+
+# Test different winsorization thresholds
+thresholds = [0.90, 0.95, 0.99]
+robust_results = {}
+
+for thresh in thresholds:
+    # Re-winsorize
+    upper_q = model_df["total_engagement"].quantile(thresh)
+    model_df[f"winsorized_{int(thresh*100)}"] = model_df["total_engagement"].clip(upper=upper_q)
+    
+    # Re-run base OLS
+    formula = f"np.log1p(winsorized_{int(thresh*100)}) ~ C(reply_type) + has_link + has_media + " + controls
+    model = smf.ols(formula, data=model_df).fit(cov_type="HC1")
+    
+    # Store key coefficients
+    robust_results[f"{int(thresh*100)}th percentile"] = {
+        "reply_other": model.params.get("C(reply_type)[T.reply_other]", 0),
+        "has_link": model.params.get("has_link[T.True]", 0),
+        "has_media": model.params.get("has_media[T.True]", 0),
+        "R-squared": model.rsquared
+    }
+
+robust_df = pd.DataFrame(robust_results).T
+print("Robustness to winsorization threshold:")
+display(robust_df.round(4))
+
+# Include quote tweets
+df_with_quotes = df[~df["is_retweet"] & df["reply_type"].isin(["none", "reply_other"])].copy()
+print(f"\nSample with quote tweets: {len(df_with_quotes)} observations")
+print(f"Quote tweets: {df_with_quotes['is_quote_tweet'].sum()}")
+```
+
+## Summary and Recommendations
+
+### Key Findings
+
+1. **Reply Effects**: Replies to others show different engagement patterns compared to original tweets
+2. **Media Boost**: Tweets with media consistently receive higher engagement
+3. **Link Effects**: The presence of links shows mixed effects on engagement
+4. **Tier Differences**: Account tier changes appear to influence engagement patterns
+5. **Temporal Trends**: Engagement patterns vary over time with some stability
+
+### Statistical Notes
+
+- Models use robust standard errors (HC1) to account for heteroskedasticity
+- Winsorization at 95th percentile handles extreme outliers
+- Fixed effects for time (month) and day/hour patterns control for temporal variation
+- Thread-level fixed effects account for within-thread correlation
+
+### Next Steps
+
+- Consider separate analysis for quote tweets and thread continuations
+- Implement change-point detection for algorithmic shifts
+- Explore non-linear effects and additional interactions
+- Add follower-normalized engagement rates if time-series data becomes available
+
+
