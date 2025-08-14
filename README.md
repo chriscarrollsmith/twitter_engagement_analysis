@@ -6,7 +6,7 @@ This project analyzes my Twitter archive to identify content strategies that dri
 
 **Key Finding**: **Observational humor provides the most consistent engagement** (1.4x advantage), while absurdist humor represents high-risk/high-reward viral potential.
 
-📊 **[View Full Analysis Report](twitter_engagement_analysis.md)**
+📊 **[View Full Analysis Report](content_engagement_analysis.md)**
 
 ## Project Structure
 
@@ -15,8 +15,8 @@ This project analyzes my Twitter archive to identify content strategies that dri
 - `02_classification_workflow.py` - **Classification**: Uses selected model to classify tweets for analysis
 
 ### Final Report
-- `twitter_engagement_analysis.qmd` - **Quarto Notebook**: Complete analysis with embedded plots
-- `twitter_engagement_analysis.md` - **Rendered Report**: GitHub-flavored markdown output
+- `content_engagement_analysis.qmd` - **Quarto Notebook**: Complete analysis with embedded plots
+- `content_engagement_analysis.md` - **Rendered Report**: GitHub-flavored markdown output
 
 ### Data Files
 - `twitter_archive.json` - Original Twitter data export
@@ -64,7 +64,7 @@ uv run 02_classification_workflow.py
 quarto render twitter_engagement_analysis.qmd --to gfm
 ```
 - Creates final analysis report with embedded visualizations
-- Outputs: `twitter_engagement_analysis.md` + supporting files
+- Outputs: `content_engagement_analysis.md` + supporting files
 
 ## Methodology Highlights
 
