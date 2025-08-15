@@ -23,4 +23,3 @@ data/classification_metadata.json
 selected_model.txt
 data/replied_tweets.json
 *.parquet
-outputs/
