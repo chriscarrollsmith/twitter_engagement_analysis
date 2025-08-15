@@ -51,7 +51,7 @@ plt.rcParams['axes.titlesize'] = 14
 plt.rcParams['axes.labelsize'] = 12
 
 # Load tweet classifications
-df = pd.read_csv('tweet_classifications.csv')
+df = pd.read_csv('../data/tweet_classifications.csv')
 ```
 
 ```{python}

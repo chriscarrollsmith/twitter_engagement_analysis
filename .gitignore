@@ -17,9 +17,10 @@ _freeze/
 .claude/
 
 # Outputs
-twitter_archive.json
-classification_metadata.json
+data/twitter_archive.json
+data/classification_metadata.json
 *.csv
 selected_model.txt
-replied_tweets.json
+data/replied_tweets.json
 *.parquet
+outputs/

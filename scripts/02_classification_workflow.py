@@ -7,7 +7,7 @@ for engagement analysis. Generates the dataset used in the final report.
 
 Usage: uv run 02_classification_workflow.py
 Prerequisites: Run 01_model_selection.py first to select model
-Output: tweet_classifications.csv
+Output: ../data/tweet_classifications.csv
 """
 
 import json
@@ -33,12 +33,12 @@ class TweetClassification(BaseModel):
 def load_selected_model() -> str:
     """Load the model selected by the evaluation script."""
     try:
-        with open('selected_model.txt', 'r') as f:
+        with open('../data/selected_model.txt', 'r') as f:
             first_line = f.readline()
             model = first_line.split(': ')[1].strip()
             return model
     except FileNotFoundError:
-        print("❌ selected_model.txt not found. Run 01_model_selection.py first.")
+        print("❌ ../data/selected_model.txt not found. Run 01_model_selection.py first.")
         return None
     except Exception as e:
         print(f"❌ Error reading selected model: {e}")
@@ -120,7 +120,7 @@ Be precise and consistent in your classifications.
 def load_twitter_data() -> pd.DataFrame:
     """Load and prepare Twitter archive data."""
     
-    with open('twitter_archive.json', 'r') as f:
+    with open('../data/twitter_archive.json', 'r') as f:
         data = json.load(f)
     
     tweets = []
@@ -256,8 +256,8 @@ def save_classification_results(classified_df: pd.DataFrame, selected_model: str
     """Save classification results with metadata."""
     
     # Save main results
-    classified_df.to_csv('tweet_classifications.csv', index=False)
-    print(f"💾 Classifications saved to: tweet_classifications.csv")
+    classified_df.to_csv('../data/tweet_classifications.csv', index=False)
+    print(f"💾 Classifications saved to: ../data/tweet_classifications.csv")
     
     # Save metadata
     metadata = {

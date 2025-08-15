@@ -6,26 +6,35 @@ This project analyzes my Twitter archive to identify content strategies that dri
 
 **Key Finding**: **Observational humor provides the most consistent engagement** (1.4x advantage), while absurdist humor represents high-risk/high-reward viral potential.
 
-📊 **[View Full Analysis Report](content_engagement_analysis.md)**
+📊 **Analysis Reports:**
+- **[Content Engagement Analysis](outputs/content_engagement_analysis.md)** - Humor types and topic strategies
+- **[Reply/Link/Media Analysis](outputs/reply_link_media_engagement_analysis.md)** - Media patterns and event studies
 
 ## Project Structure
 
-### Core Scripts (Run Once)
-- `01_model_selection.py` - **Model Selection**: Compares LLMs using GPT-5 agreement evaluation
-- `02_classification_workflow.py` - **Classification**: Uses selected model to classify tweets for analysis
-
-### Final Report
-- `content_engagement_analysis.qmd` - **Quarto Notebook**: Complete analysis with embedded plots
-- `content_engagement_analysis.md` - **Rendered Report**: GitHub-flavored markdown output
-
-### Data Files
-- `twitter_archive.json` - Original Twitter data export
-- `model_selection_results.csv` - Model evaluation results
-- Generated classification and metadata files
-
-### Configuration
-- `pyproject.toml` - Python dependencies via uv
-- `_quarto.yml` - Quarto configuration
+```
+Twitter/
+├── scripts/                    # Core analysis scripts
+│   ├── 01_model_selection.py   # Model evaluation and selection
+│   └── 02_classification_workflow.py  # Tweet classification
+├── notebooks/                  # Analysis notebooks
+│   ├── content_engagement_analysis.qmd  # Main engagement analysis
+│   └── reply_link_media_engagement_analysis.qmd  # Media/reply analysis
+├── data/                       # Data files
+│   ├── twitter_archive.json    # Original Twitter export
+│   ├── model_selection_results.csv  # Model evaluation results
+│   ├── tweet_classifications.csv    # Classified tweets
+│   └── selected_model.txt      # Selected model for classification
+├── utils/                        # Utility modules
+│   └── analysis_utils.py       # Data loading and processing utilities
+├── outputs/                    # Generated reports and figures
+│   ├── content_engagement_analysis.md  # Rendered analysis report
+│   └── *_files/                # Supporting figures
+└── Configuration files
+    ├── pyproject.toml          # Python dependencies
+    ├── _quarto.yml             # Quarto configuration
+    └── CLAUDE.md               # AI assistant instructions
+```
 
 ## Usage
 
@@ -45,26 +54,40 @@ OPENROUTER_API_KEY=your_openrouter_key
 
 **Step 1: Model Evaluation**
 ```bash
+cd scripts
 uv run 01_model_selection.py
 ```
 - Compares multiple LLMs using GPT-5 as ground truth
 - Selects best model based on agreement scores
-- Outputs: `model_selection_results.csv`, `selected_model.txt`
+- Outputs: `../data/model_selection_results.csv`, `../data/selected_model.txt`
 
 **Step 2: Tweet Classification**  
 ```bash
+cd scripts
 uv run 02_classification_workflow.py
 ```
 - Uses selected model to classify tweets
 - Generates engagement analysis dataset
-- Outputs: `tweet_classifications.csv`, `classification_metadata.json`
+- Outputs: `../data/tweet_classifications.csv`
 
-**Step 3: Generate Report**
+**Step 3: Generate Reports**
+
+*Content Engagement Analysis:*
 ```bash
-quarto render twitter_engagement_analysis.qmd --to gfm
+cd notebooks
+quarto render content_engagement_analysis.qmd --to gfm
 ```
-- Creates final analysis report with embedded visualizations
-- Outputs: `content_engagement_analysis.md` + supporting files
+- Analyzes humor types and topic categories for engagement patterns
+- Outputs: `../outputs/content_engagement_analysis.md`
+
+*Reply/Link/Media Analysis:*
+```bash
+cd notebooks
+quarto render reply_link_media_engagement_analysis.qmd --to gfm
+```
+- Analyzes engagement patterns for replies, links, and media content
+- Includes temporal stability and blue-check upgrade event study
+- Outputs: `../outputs/reply_link_media_engagement_analysis.md`
 
 ## Methodology Highlights
 

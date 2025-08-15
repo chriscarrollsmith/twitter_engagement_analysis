@@ -22,7 +22,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from IPython.display import display
 
-from src.analysis_utils import (
+from utils.analysis_utils import (
     load_archive,
     engineer_features,
     create_core_sample,
@@ -41,7 +41,7 @@ Load the `twitter_archive.json` with a robust loader that supports JSONL and nes
 ```{python}
 #| label: load-data
 
-raw_df = load_archive("twitter_archive.json")
+raw_df = load_archive("../data/twitter_archive.json")
 print(f"Loaded raw rows: {len(raw_df):,}")
 raw_df.head(2)
 ```
@@ -57,7 +57,7 @@ df = engineer_features(raw_df)
 model_df = create_core_sample(df)
 
 # Persist engineered dataset for reuse
-df.to_parquet("tweet_engagement_model.parquet")
+df.to_parquet("../data/tweet_engagement_model.parquet")
 
 print({
     "engineered_rows": len(df),
@@ -332,7 +332,7 @@ else:
 ```{python}
 #| label: temporal-stability
 
-from src.analysis_utils import ROLLING_WINDOW_DAYS
+from utils.analysis_utils import ROLLING_WINDOW_DAYS
 
 # Create rolling window analysis
 model_df_sorted = model_df.sort_index()

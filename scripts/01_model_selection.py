@@ -6,7 +6,7 @@ Compares multiple LLMs using GPT-5 as ground truth on a fresh test set.
 No circular validation - clean methodology for selecting the best classifier.
 
 Usage: uv run 01_model_selection.py
-Output: model_selection_results.csv
+Output: ../data/model_selection_results.csv
 """
 
 import json
@@ -115,7 +115,7 @@ Classify based only on the content, not on engagement or popularity.
 def get_diverse_test_set(num_tweets: int = 20) -> List[Dict]:
     """Get diverse test tweets across engagement levels."""
     
-    with open('twitter_archive.json', 'r') as f:
+    with open('../data/twitter_archive.json', 'r') as f:
         data = json.load(f)
     
     # Get tweets with sufficient text
@@ -309,17 +309,17 @@ def analyze_and_save_results(results: List[Dict]):
     print(f"   Reason: Highest agreement with GPT-5 ground truth")
     
     # Save detailed results
-    df.to_csv('model_selection_results.csv', index=False)
-    print(f"\n💾 Results saved to: model_selection_results.csv")
+    df.to_csv('../data/model_selection_results.csv', index=False)
+    print(f"\n💾 Results saved to: ../data/model_selection_results.csv")
     
     # Save selection summary
-    with open('selected_model.txt', 'w') as f:
+    with open('../data/selected_model.txt', 'w') as f:
         f.write(f"Selected Model: {best_model}\n")
         f.write(f"GPT-5 Agreement: {best_score:.1%}\n")
         f.write(f"Methodology: Fresh test set, no circular validation\n")
         f.write(f"Test tweets: {len(df['tweet_id'].unique())}\n")
     
-    print("📄 Selection summary saved to: selected_model.txt")
+    print("📄 Selection summary saved to: ../data/selected_model.txt")
     
     return best_model, model_performance
 
