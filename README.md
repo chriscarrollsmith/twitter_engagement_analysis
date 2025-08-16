@@ -51,7 +51,18 @@ OPENAI_API_KEY=your_openai_key
 OPENROUTER_API_KEY=your_openrouter_key
 ```
 
-### 3. Run Analysis Pipeline
+### 3. (Optional) Fetch Mutual Account Data
+To analyze mutual follows, install x-cli and fetch account info:
+```bash
+# Install x-cli
+uv tool install -U git+https://github.com/Promptly-Technologies-LLC/X-cli.git
+
+# Extract and fetch mutual account info (handles batching and rate limits)
+uv run scripts/mutuals_extract.py
+```
+Note: x-cli has a 100 API calls/month limit. The script saves progress and can resume if interrupted.
+
+### 4. Run Analysis Pipeline
 
 **Step 1: Model Evaluation**
 ```bash
