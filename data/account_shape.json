@@ -1,0 +1,27 @@
+{
+  "total_count": 1,
+  "data_type": "list with single dictionary",
+  "item_structure": {
+    "account": {
+      "createdVia": "string - OAuth app ID used for account creation",
+      "username": "string - Twitter username/handle",
+      "accountId": "string - Unique Twitter account ID",
+      "createdAt": "string - ISO 8601 timestamp of account creation",
+      "accountDisplayName": "string - Display name on profile"
+    }
+  },
+  "sample_item": {
+    "account": {
+      "createdVia": "oauth:268278",
+      "username": "christophcsmith",
+      "accountId": "707078994852622336",
+      "createdAt": "2016-03-08T05:42:24.075Z",
+      "accountDisplayName": "Christopher C. Smith"
+    }
+  },
+  "notes": [
+    "Contains core account metadata",
+    "Single item list containing account info",
+    "Username and display name may differ"
+  ]
+}

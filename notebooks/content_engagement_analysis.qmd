@@ -1,15 +1,7 @@
 ---
 title: "Twitter Engagement Analysis: Investigation of Content Strategy"
 author: "Christopher Smith"
-format: 
-  gfm:
-    code-fold: false
-    echo: true
-    warning: false
-    fig-width: 10
-    fig-height: 6
-    dpi: 300
-jupyter: python3
+date: today
 ---
 
 # Executive Summary

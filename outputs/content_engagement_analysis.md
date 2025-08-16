@@ -72,7 +72,7 @@ plt.show()
     self_deprecating   1.8     1.0
 
 ![The Outlier Problem: Mean vs Median
-Engagement](twitter_engagement_analysis_files/figure-commonmark/mean-vs-median-problem-output-2.png)
+Engagement](content_engagement_analysis_files/figure-commonmark/mean-vs-median-problem-output-2.png)
 
 The `absurdist` category’s mean of 11.0 is wildly inflated compared to
 its median of 1.0. This signals that our conclusions will be unreliable
@@ -133,14 +133,8 @@ except FileNotFoundError:
     print("Selected Model: deepseek-chat (74.7% GPT-5 Agreement)")
 ```
 
-    --- Model & Classification Integrity ---
-    Selected Model: deepseek-chat
-    GPT-5 Agreement: 74.7%
-    Methodology: Fresh test set, no circular validation
-    Test tweets: 15
-    Model used for full dataset: deepseek-chat
-    Total tweets classified: 500
-    --------------------------------------
+    Model/classification metadata not found. Using placeholders.
+    Selected Model: deepseek-chat (74.7% GPT-5 Agreement)
 
 # Key Findings (Based on Robust Analysis)
 
@@ -200,7 +194,7 @@ if len(humor_stats_winsorized) > 1:
 ```
 
 ![Consistent Engagement by Humor Type
-(Winsorized)](twitter_engagement_analysis_files/figure-commonmark/humor-performance-winsorized-output-1.png)
+(Winsorized)](content_engagement_analysis_files/figure-commonmark/humor-performance-winsorized-output-1.png)
 
 
     Humor Type Performance (Winsorized):
@@ -258,7 +252,7 @@ print(topic_stats_winsorized)
 ```
 
 ![Consistent Topic Performance
-(Winsorized)](twitter_engagement_analysis_files/figure-commonmark/topic-performance-winsorized-output-1.png)
+(Winsorized)](content_engagement_analysis_files/figure-commonmark/topic-performance-winsorized-output-1.png)
 
     Topic Category Statistics (Winsorized):
                        count  mean  median
@@ -302,7 +296,7 @@ plt.show()
 ```
 
 ![Humor Type × Topic Category Combinations
-(Winsorized)](twitter_engagement_analysis_files/figure-commonmark/cross-classification-winsorized-output-1.png)
+(Winsorized)](content_engagement_analysis_files/figure-commonmark/cross-classification-winsorized-output-1.png)
 
 # Strategic Recommendations
 

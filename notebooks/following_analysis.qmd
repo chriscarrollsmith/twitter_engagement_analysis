@@ -1,0 +1,137 @@
+---
+title: "Following Analysis"
+author: "Christopher C. Smith"
+date: today
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{python}
+import json
+import pandas as pd
+import numpy as np
+
+# Load the archive
+with open('../data/twitter_archive.json', 'r') as f:
+    archive = json.load(f)
+
+# Extract following and follower data
+following = archive['following']
+followers = archive['follower']
+
+# Extract account IDs
+following_ids = {item['following']['accountId'] for item in following}
+follower_ids = {item['follower']['accountId'] for item in followers}
+
+# Calculate mutual follows
+mutual_follows = following_ids & follower_ids
+
+# Calculate metrics
+total_following = len(following_ids)
+total_followers = len(follower_ids)
+total_mutual = len(mutual_follows)
+
+# Percentages
+pct_following_that_follow_back = (total_mutual / total_following) * 100 if total_following > 0 else 0
+pct_followers_that_i_follow = (total_mutual / total_followers) * 100 if total_followers > 0 else 0
+```
+
+## Summary Statistics
+
+```{python}
+import matplotlib.pyplot as plt
+
+print(f"**Accounts I follow:** {total_following:,}")
+print(f"**Accounts that follow me:** {total_followers:,}")
+print(f"**Mutual follows:** {total_mutual:,}")
+print()
+print(f"**Share of accounts I follow who follow me back:** {pct_following_that_follow_back:.1f}%")
+print(f"**Share of my followers that I follow:** {pct_followers_that_i_follow:.1f}%")
+```
+
+## Reciprocal Following Visualization
+
+```{python}
+#| fig-width: 8
+#| fig-height: 6
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+# Venn diagram style representation - simplified as bar charts
+categories = ['Following\n(not mutual)', 'Mutual\nfollows', 'Followers\n(not mutual)']
+values = [
+    total_following - total_mutual,
+    total_mutual,
+    total_followers - total_mutual
+]
+
+colors = ['#1DA1F2', '#17BF63', '#E1AD01']
+bars = ax1.bar(categories, values, color=colors, alpha=0.7)
+ax1.set_ylabel('Number of Accounts')
+ax1.set_title('Following Relationships Breakdown')
+
+# Add value labels on bars
+for bar, val in zip(bars, values):
+    height = bar.get_height()
+    ax1.text(bar.get_x() + bar.get_width()/2., height,
+             f'{val:,}', ha='center', va='bottom')
+
+# Reciprocity rates as pie charts
+ax2.pie([pct_following_that_follow_back, 100 - pct_following_that_follow_back],
+        labels=['Follow back', 'Don\'t follow back'],
+        colors=['#17BF63', '#E8E8E8'],
+        autopct='%1.1f%%',
+        startangle=90)
+ax2.set_title('Of People I Follow')
+
+plt.tight_layout()
+plt.show()
+```
+
+## Follow Ratio Analysis
+
+```{python}
+follow_ratio = total_followers / total_following if total_following > 0 else 0
+
+print(f"**Follow ratio (followers/following):** {follow_ratio:.2f}")
+print()
+if follow_ratio > 1:
+    print(f"You have {follow_ratio:.2f}x more followers than accounts you follow.")
+elif follow_ratio < 1:
+    print(f"You follow {1/follow_ratio:.2f}x more accounts than follow you.")
+else:
+    print("You have an equal number of followers and following.")
+```
+
+## Key Insights
+
+```{python}
+# Generate insights based on the data
+insights = []
+
+if pct_following_that_follow_back < 30:
+    insights.append(f"- Low reciprocity rate ({pct_following_that_follow_back:.1f}%) suggests you follow many accounts that don't follow back (e.g., news, celebrities, or topic-focused accounts)")
+elif pct_following_that_follow_back > 70:
+    insights.append(f"- High reciprocity rate ({pct_following_that_follow_back:.1f}%) suggests a tight-knit network of mutual connections")
+else:
+    insights.append(f"- Moderate reciprocity rate ({pct_following_that_follow_back:.1f}%) suggests a balanced mix of mutual connections and one-way follows")
+
+if pct_followers_that_i_follow < 20:
+    insights.append(f"- You follow back only {pct_followers_that_i_follow:.1f}% of your followers, indicating selective following behavior")
+elif pct_followers_that_i_follow > 50:
+    insights.append(f"- You follow back {pct_followers_that_i_follow:.1f}% of your followers, showing high engagement with your audience")
+
+if follow_ratio > 2:
+    insights.append(f"- Your follow ratio of {follow_ratio:.2f} indicates an influencer-like profile")
+elif follow_ratio < 0.5:
+    insights.append(f"- Your follow ratio of {follow_ratio:.2f} suggests you're primarily a content consumer rather than creator")
+
+for insight in insights:
+    print(insight)
+```
+
+---
+
+*Note: This analysis is based on account IDs only. Future enhancements could include username resolution and interaction analysis.*

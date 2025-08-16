@@ -1,0 +1,22 @@
+{
+  "total_count": 31158,
+  "data_type": "list of dictionaries",
+  "item_structure": {
+    "like": {
+      "tweetId": "string - ID of the liked tweet",
+      "fullText": "string - Full text content of the liked tweet"
+    }
+  },
+  "sample_item": {
+    "like": {
+      "tweetId": "1891451625543176232",
+      "fullText": "Someone just sent 500 ETH to the burn address with this message (translated):\n\n\"The CEOs of Kuande Investment: Feng Xin and Xu Yuzhi used brain-computer weapons to persecute all company employees and former employees, and even they themselves were controlled.\" https://t.co/5p01PAXXer",
+      "expandedUrl": "https://twitter.com/i/web/status/1891451625543176232"
+    }
+  },
+  "notes": [
+    "Contains tweet IDs and full text of liked tweets",
+    "Does not include author information or engagement metrics",
+    "Text may contain URLs, mentions, and hashtags"
+  ]
+}

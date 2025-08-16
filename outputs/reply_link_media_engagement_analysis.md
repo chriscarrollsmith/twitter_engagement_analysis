@@ -4,6 +4,12 @@
 ## Setup
 
 ``` python
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import utils
+sys.path.insert(0, str(Path.cwd().parent))
+
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
@@ -31,7 +37,7 @@ Load the `twitter_archive.json` with a robust loader that supports JSONL
 and nested shapes.
 
 ``` python
-raw_df = load_archive("twitter_archive.json")
+raw_df = load_archive("../data/twitter_archive.json")
 print(f"Loaded raw rows: {len(raw_df):,}")
 raw_df.head(2)
 ```
@@ -70,7 +76,7 @@ df = engineer_features(raw_df)
 model_df = create_core_sample(df)
 
 # Persist engineered dataset for reuse
-df.to_parquet("tweet_engagement_model.parquet")
+df.to_parquet("../data/tweet_engagement_model.parquet")
 
 print({
     "engineered_rows": len(df),
@@ -288,8 +294,8 @@ plt.show()
     Dep. Variable:     np.log1p(winsorized_engagement)   R-squared:                       0.078
     Model:                                         OLS   Adj. R-squared:                  0.051
     Method:                              Least Squares   F-statistic:                     452.6
-    Date:                             Wed, 13 Aug 2025   Prob (F-statistic):               0.00
-    Time:                                     17:12:05   Log-Likelihood:                -3342.4
+    Date:                             Sat, 16 Aug 2025   Prob (F-statistic):               0.00
+    Time:                                     09:40:54   Log-Likelihood:                -3342.4
     No. Observations:                             3386   AIC:                             6885.
     Df Residuals:                                 3286   BIC:                             7498.
     Df Model:                                       99                                         
@@ -464,8 +470,8 @@ plt.show()
     Model Family:                 Poisson   Df Model:                           99
     Link Function:                    Log   Scale:                          1.0000
     Method:                          IRLS   Log-Likelihood:                -20053.
-    Date:                Wed, 13 Aug 2025   Deviance:                       33901.
-    Time:                        17:12:12   Pearson chi2:                 1.07e+05
+    Date:                Sat, 16 Aug 2025   Deviance:                       33901.
+    Time:                        09:40:55   Pearson chi2:                 1.07e+05
     No. Iterations:                    21   Pseudo R-squ. (CS):             0.9657
     Covariance Type:                  HC1                                         
     =======================================================================================================
@@ -753,8 +759,8 @@ else:
     Dep. Variable:       total_engagement   R-squared:                        0.0193
     Estimator:                   PanelOLS   R-squared (Between):             -0.0085
     No. Observations:                1204   R-squared (Within):               0.0193
-    Date:                Wed, Aug 13 2025   R-squared (Overall):              0.0086
-    Time:                        17:12:13   Log-likelihood                   -3825.0
+    Date:                Sat, Aug 16 2025   R-squared (Overall):              0.0086
+    Time:                        09:40:55   Log-likelihood                   -3825.0
     Cov. Estimator:            Unadjusted                                           
                                             F-statistic:                      3.9748
     Entities:                         394   P-value                           0.0034

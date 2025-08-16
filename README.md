@@ -8,6 +8,7 @@ This project analyzes my Twitter archive to identify content strategies that dri
 
 📊 **Analysis Reports:**
 - **[Content Engagement Analysis](outputs/content_engagement_analysis.md)** - Humor types and topic strategies
+- **[Following Analysis](outputs/following_analysis.md)** - Analysis of my following and follower relationships
 - **[Reply/Link/Media Analysis](outputs/reply_link_media_engagement_analysis.md)** - Media patterns and event studies
 
 ## Project Structure
@@ -19,6 +20,8 @@ Twitter/
 │   └── 02_classification_workflow.py  # Tweet classification
 ├── notebooks/                  # Analysis notebooks
 │   ├── content_engagement_analysis.qmd  # Main engagement analysis
+│   ├── following_analysis.qmd  # Following analysis
+│   ├── _quarto.yml             # Quarto configuration
 │   └── reply_link_media_engagement_analysis.qmd  # Media/reply analysis
 ├── data/                       # Data files
 │   ├── twitter_archive.json    # Original Twitter export
@@ -30,10 +33,8 @@ Twitter/
 ├── outputs/                    # Generated reports and figures
 │   ├── content_engagement_analysis.md  # Rendered analysis report
 │   └── *_files/                # Supporting figures
-└── Configuration files
-    ├── pyproject.toml          # Python dependencies
-    ├── _quarto.yml             # Quarto configuration
-    └── CLAUDE.md               # AI assistant instructions
+├── pyproject.toml          # Python dependencies
+└── CLAUDE.md               # AI assistant instructions
 ```
 
 ## Usage
@@ -72,74 +73,39 @@ uv run 02_classification_workflow.py
 
 **Step 3: Generate Reports**
 
-*Content Engagement Analysis:*
 ```bash
-cd notebooks
-quarto render content_engagement_analysis.qmd --to gfm
+uv run quarto render notebooks
 ```
-- Analyzes humor types and topic categories for engagement patterns
-- Outputs: `../outputs/content_engagement_analysis.md`
-
-*Reply/Link/Media Analysis:*
-```bash
-cd notebooks
-quarto render reply_link_media_engagement_analysis.qmd --to gfm
-```
-- Analyzes engagement patterns for replies, links, and media content
-- Includes temporal stability and blue-check upgrade event study
-- Outputs: `../outputs/reply_link_media_engagement_analysis.md`
-
-## Methodology Highlights
-
-### **Methodologically Sound Approach**
-- **Independent Ground Truth**: GPT-5 agreement evaluation for model selection
-- **Outlier-Resistant Analysis**: Winsorized means (95th percentile cap) to handle skewed engagement data
-- **Robustness Testing**: Multiple normalization methods to validate conclusions
-- **No Circular Validation**: Fresh test sets with no prompt contamination
-- **Confidence-Free Analysis**: Focus on actual performance over self-reported scores
-- **Reproducible Pipeline**: Documented workflow with version control
-
-### **Common Pitfalls Avoided**
-- Using examples in prompts then testing on same examples
-- Trusting LLM self-reported confidence scores
-- Being misled by outlier-skewed averages in social media data
-- Cherry-picking results or models
-- Circular validation between training and testing
 
 ## Key Findings
 
+### Content Analysis
+
 1. **Observational humor** delivers the most consistent engagement (1.4x advantage)
 2. **Absurdist humor** has viral potential but inconsistent baseline performance  
-3. **Topic choice is secondary** to humor type after controlling for outliers
-4. **Portfolio approach**: 70% consistent content, 30% viral experiments
+3. **Topic choice** is secondary to humor type after controlling for outliers, but:
+   - Housing and religion have been good niches for me
+   - Twitter seems to like when I make use of data
+   - Political posts performed better than I expected, though are best defused with observational humor
+   - Personal topics are fine, but vulnerability is penalized
+
+### Following Analysis
+
+Moderate reciprocity rate (32.0%) suggests a balanced mix of mutual connections and one-way follows.
+
+### Reply/Link/Media Analysis
+
+My signup for the blue check upgrade roughly coincided with a major change in the algorithm, and you can see this in my data. This makes it a bit hard to disambiguate the effects of the upgrade from the effects of the algorithm change, but the fact that I have both pre- and post-upgrade data makes it possible to do some analysis using the post-upgrade data as the baseline.
+
+1. **Algorithm changes** detected in my event study are basically consistent with what Elon Musk has shared about the new algorithm:
+   - Links and media tweets performed much better than text-only tweets before the algorithm change, but about the same after.
+   - Replies performed much better after the algorithm change.
+   - Overall, I estimate that the new algorithm reduced my free-tier engagement by about 65%, with almost all of that penalty accruing to my link and media tweets.
+2. **Blue check boost** detected by comparing my text-only tweets during the upgrade period to my text-only tweets after the upgrade (which is plausibly the baseline), seems to be on the order of about 15-20% more engagement for blue checks.
 
 ## Strategic Recommendations
 
-### Portfolio Strategy
-
-**Baseline Content (70%): Observational Humor**
-- Witty takes on everyday experiences, tech, and social commentary
-- Goal: Consistent 1-5 engagement per tweet
-
-**Viral Experiments (30%): Absurdist Humor** 
-- "Personal disenrichment" style ironic inversions
-- Religious/sacred metaphors for mundane activities
-- Goal: Occasional viral breakthroughs (10+ engagement)
-
-### Key Insight
-**Topic choice matters less than humor type** - focus on areas where you can apply observational humor effectively rather than chasing specific topic categories.
-
-## Technical Details
-
-- **Model Selection**: Systematic LLM evaluation using GPT-5 ground truth
-- **Outlier Handling**: Winsorized means to avoid viral tweet bias
-- **Validation**: Robustness testing across multiple normalization methods
-- **Reproducible**: Full pipeline with error handling and clear documentation
-
-## Dependencies
-
-Managed via `uv` package manager. See [Usage](#usage) section for setup instructions.
-
----
-
-*This analysis demonstrates how to conduct methodologically sound content strategy research using modern LLM tools while avoiding common experimental design pitfalls, particularly the critical importance of robust outlier handling in skewed social media engagement data.*
+- **Do** make use of data; **Don't** spend loads of time sourcing links and media to include in tweets.
+- **Do** use observational humor to take the edge off of sensitive/controversial topics; **Don't** expect every absurdist joke to hit.
+- **Do** post personal triumphs; **Don't** be too raw or self-deprecating.
+- **Do** upgrade to blue check if a 15-20% boost is worth it to you; **Don't** expect it to make you a viral sensation.

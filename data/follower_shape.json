@@ -1,0 +1,21 @@
+{
+  "total_count": 551,
+  "data_type": "list of dictionaries",
+  "item_structure": {
+    "follower": {
+      "accountId": "string - Twitter account ID",
+      "userLink": "string - URL to user profile"
+    }
+  },
+  "sample_item": {
+    "follower": {
+      "accountId": "1865346171067420672",
+      "userLink": "https://twitter.com/intent/user?user_id=1865346171067420672"
+    }
+  },
+  "notes": [
+    "Archive only contains account IDs and profile links",
+    "No usernames, display names, or profile details included",
+    "Structure is identical to following data"
+  ]
+}

@@ -1,9 +1,7 @@
 ---
 title: "Reply, Link, and Media Engagement Analysis"
-format: gfm
-execute:
-  engine: jupyter
-  cache: false
+author: "Christopher Smith"
+date: today
 ---
 
 ## Setup
@@ -12,6 +10,12 @@ execute:
 #| label: setup
 #| message: false
 #| warning: false
+
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import utils
+sys.path.insert(0, str(Path.cwd().parent))
 
 import pandas as pd
 import numpy as np

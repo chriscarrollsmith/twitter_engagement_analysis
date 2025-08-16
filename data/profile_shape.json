@@ -1,0 +1,31 @@
+{
+  "total_count": 1,
+  "data_type": "list with single dictionary",
+  "item_structure": {
+    "profile": {
+      "description": {
+        "bio": "string - Profile bio text",
+        "website": "string - Website URL",
+        "location": "string - Location text"
+      },
+      "avatarMediaUrl": "string - URL to profile avatar image",
+      "headerMediaUrl": "string - URL to profile header image"
+    }
+  },
+  "sample_item": {
+    "profile": {
+      "description": {
+        "bio": "Albany-based software developer and historian of religions. Anarcho-mutualist.",
+        "website": "https://t.co/Kkjr6COLZP",
+        "location": "Albany, NY"
+      },
+      "avatarMediaUrl": "https://pbs.twimg.com/profile_images/1884626871498702849/VYZZYi8u.jpg",
+      "headerMediaUrl": "https://pbs.twimg.com/profile_banners/707078994852622336/1738164537"
+    }
+  },
+  "notes": [
+    "Contains profile display information",
+    "Single item list containing profile data",
+    "Media URLs point to Twitter CDN"
+  ]
+}

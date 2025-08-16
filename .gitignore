@@ -12,7 +12,6 @@ wheels/
 /.quarto/
 
 # Claude/Quarto
-CLAUDE.md
 _freeze/
 .claude/
 
