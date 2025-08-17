@@ -38,10 +38,11 @@ def fetch_account_info(batch_size: int = 100):
     
     for i, batch in enumerate(batches, 1):
         batch_file = Path(f"data/mutuals_batch{i}.json")
-        if batch_file.exists(): continue  # Skip existing batches
+        if batch_file.exists():
+            continue  # Skip existing batches
         
         print(f"Fetching batch {i}/{len(batches)}...")
-        cmd = f"x-cli user --by-id --json {' '.join(batch)}"
+        cmd = f"x-cli user --by-id --json --fields name location description affiliation most_recent_tweet_id public_metrics --expansions most_recent_tweet_id --tweet-fields created_at {' '.join(batch)}"
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         
         if result.returncode != 0:
@@ -49,7 +50,8 @@ def fetch_account_info(batch_size: int = 100):
             continue
             
         with open(batch_file, 'w') as f:
-            json.dump({"data": json.loads(result.stdout).get('data', [])}, f)
+            response_data = json.loads(result.stdout)
+            json.dump(response_data, f)
     
     print(f"Completed {len(batches)} batches")
 
@@ -60,27 +62,38 @@ def combine_and_export():
         raise FileNotFoundError("No batch files found")
     
     # Combine data
-    combined = []
+    combined_users = []
+    combined_tweets = []
+    
     for file in batch_files:
         with open(file, 'r') as f:
-            combined.extend(json.load(f).get('data', []))
+            batch_data = json.load(f)
+            combined_users.extend(batch_data.get('data', []))
+            if 'includes' in batch_data and 'tweets' in batch_data['includes']:
+                combined_tweets.extend(batch_data['includes']['tweets'])
+    
+    # Create lookup for tweet dates
+    tweet_lookup = {tweet['id']: tweet.get('created_at') for tweet in combined_tweets}
     
     # Save JSON
     with open('data/mutuals_account_info.json', 'w') as f:
-        json.dump({"data": combined}, f, indent=2)
+        json.dump({
+            "data": combined_users,
+            "includes": {"tweets": combined_tweets}
+        }, f, indent=2)
     
     # Create CSV
     df = pd.DataFrame([{
         'id': u.get('id'),
         'username': u.get('username'),
         'name': u.get('name'),
-        'followers': u.get('public_metrics', {}).get('followers_count'),
-        'following': u.get('public_metrics', {}).get('following_count'),
-        'tweets': u.get('public_metrics', {}).get('tweet_count'),
-        'verified': u.get('verified'),
-        'created_at': u.get('created_at'),
-        'description': u.get('description')
-    } for u in combined])
+        'location': u.get('location'),
+        'description': u.get('description'),
+        'affiliation': u.get('affiliation'),
+        'most_recent_tweet_id': u.get('most_recent_tweet_id'),
+        'most_recent_tweet_date': tweet_lookup.get(u.get('most_recent_tweet_id')),
+        'followers_count': u.get('public_metrics', {}).get('followers_count')
+    } for u in combined_users])
     
     df.to_csv('data/mutuals_summary.csv', index=False)
     print(f"Combined {len(df)} accounts into JSON and CSV")

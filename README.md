@@ -4,6 +4,15 @@
 
 This project analyzes my Twitter archive to identify content strategies that drive engagement, using robust methodology to avoid being misled by viral outliers that skew traditional averages.
 
+To use this project, you will need to:
+
+1. Download your Twitter archive from https://x.com/settings/download_your_data
+2. Upload your data to the [Twitter Community Archive](https://www.community-archive.org/), which will process it and put it in a usable JSON format (warning: this will make your data public on the archive website!)
+3. Download your data in JSON format from https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/{your_username}/archive.json
+4. Save it to `data/twitter_archive.json`
+
+## Results
+
 **Key Finding**: **Observational humor provides the most consistent engagement** (1.4x advantage), while absurdist humor represents high-risk/high-reward viral potential.
 
 📊 **Analysis Reports:**
@@ -39,6 +48,13 @@ Twitter/
 
 ## Usage
 
+### Prerequisites
+
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/)
+- [x-cli](https://github.com/Promptly-Technologies-LLC/X-cli)
+- Twitter archive data saved as `data/twitter_archive.json`
+
 ### 1. Install Dependencies
 ```bash
 uv install
@@ -49,6 +65,8 @@ Create a `.env` file with:
 ```
 OPENAI_API_KEY=your_openai_key
 OPENROUTER_API_KEY=your_openrouter_key
+MY_USER_ID=your_user_id
+MY_SCREEN_NAME=your_screen_name
 ```
 
 ### 3. (Optional) Fetch Mutual Account Data

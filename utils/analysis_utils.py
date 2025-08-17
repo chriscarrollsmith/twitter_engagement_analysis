@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import json
+import os
 from typing import Any, Dict, Optional
+from dotenv import load_dotenv
 
 import numpy as np
 import pandas as pd
 
+load_dotenv()
+
 
 # --- Constants ---
 # Replace with your actual user ID string if known; otherwise inferred at runtime
-MY_USER_ID: str = "707078994852622336"
+MY_USER_ID: str = os.getenv("MY_USER_ID")
 # Optionally provide your username to improve ID inference
-MY_SCREEN_NAME: str = "christophcsmith"
+MY_SCREEN_NAME: str = os.getenv("MY_SCREEN_NAME")
 
 # Account tier boundaries (inclusive start dates)
 TIER_UPGRADED_START: str = "2023-09-12"
